@@ -19,6 +19,9 @@
 # Boston, MA 02110-1301, USA.
 #
 
+*NOTE*: This branch has been forked from main GNU Radio repo to support SNR
+estimation development for OFDM
+
 Welcome to GNU Radio!
 
 
