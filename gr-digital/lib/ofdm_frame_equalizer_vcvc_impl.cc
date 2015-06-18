@@ -55,7 +55,7 @@ namespace gr {
     }
   
     /**
-     * Private constructor
+     * Private constructor: 1 input port, 1 output port block
      */
     ofdm_frame_equalizer_vcvc_impl::ofdm_frame_equalizer_vcvc_impl(
 	ofdm_equalizer_base::sptr equalizer,
@@ -119,7 +119,9 @@ namespace gr {
      * The work function for this equalizer "block"
      * Params:param 
      *    - noutput_items: total number of items to produce in each output buffer
-     *    - ninput_items: 
+     *    - ninput_items: _vector_ of number of input items available on all the input ports
+     *    - input_items: the input ports
+     *    - output_items: the output ports
      */
     int
     ofdm_frame_equalizer_vcvc_impl::work(int noutput_items,
@@ -131,6 +133,8 @@ namespace gr {
       gr_complex *out = (gr_complex *) output_items[0];
 
       int carrier_offset = 0;
+
+      // Retrieve the frame length, either from input stream or from initial block setting
       int frame_len = 0;
       if (d_fixed_frame_len) {
 	frame_len = d_fixed_frame_len;
@@ -138,14 +142,27 @@ namespace gr {
 	frame_len = ninput_items[0];
       }
 
+      // Get all propagated tags on the first item into this block
       std::vector<tag_t> tags;
-      get_tags_in_window(tags, 0, 0, 1);
+
+      // get_tags_in_windows(): retrieve tags using relative indices w.r.t the
+      // start of work() function
+      get_tags_in_window(
+          tags,     // Tags will be saved here
+          0,        // Look on port 0 
+          0,        // Start of relative range (relative to nitems_read(0)) 
+          1         // End of relative range
+          );
+
+      // Scan through the tags and update appropriate RX parameters
       for (unsigned i = 0; i < tags.size(); i++) {
+        // Get the channel state information (estimated previously)
         if (pmt::symbol_to_string(tags[i].key) == "ofdm_sync_chan_taps") {
           d_channel_state = pmt::c32vector_elements(tags[i].value);
         }
+        // Get the carrier frequency offset estimated previously
         if (pmt::symbol_to_string(tags[i].key) == "ofdm_sync_carr_offset") {
-          carrier_offset = pmt::to_long(tags[i].value);
+          carrier_offset = pmt::to_long(tags[i].value);   // CFO is usually in (integer) Hz
         }
       }
 
@@ -167,13 +184,16 @@ namespace gr {
       // Correct the frequency shift on the symbols
       gr_complex phase_correction;
       for (int i = 0; i < frame_len; i++) {
+        // phase offset calculation
 	phase_correction = gr_expj(-M_TWOPI * carrier_offset * d_cp_len / d_fft_len * (i+1));
+        // phase correction on each sample
 	for (int k = 0; k < d_fft_len; k++) {
 	  out[i*d_fft_len+k] *= phase_correction;
 	}
       }
 
-      // Do the equalizing
+      // Do the equalizing and output "hard" rx'ed samples
+      // No soft information is recorded. Start HERE to change.
       d_eq->reset();
       d_eq->equalize(out, frame_len, d_channel_state);
       d_eq->get_channel_state(d_channel_state);

@@ -34,7 +34,7 @@ namespace gr {
       const int d_cp_len;
       ofdm_equalizer_base::sptr d_eq;
       bool d_propagate_channel_state;
-      const int d_fixed_frame_len;
+      const int d_fixed_frame_len;          // should frame length be fixed, default to 'false'
       std::vector<gr_complex> d_channel_state;
 
      protected:
