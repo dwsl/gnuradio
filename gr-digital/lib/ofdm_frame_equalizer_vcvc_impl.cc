@@ -35,6 +35,9 @@ static const pmt::pmt_t CHAN_TAPS_KEY = pmt::mp("ofdm_sync_chan_taps");
 namespace gr {
   namespace digital {
 
+    /**
+     * Make function, defined in public header
+     */
     ofdm_frame_equalizer_vcvc::sptr
     ofdm_frame_equalizer_vcvc::make(
 	ofdm_equalizer_base::sptr equalizer,
@@ -50,7 +53,10 @@ namespace gr {
 	  )
       );
     }
-
+  
+    /**
+     * Private constructor
+     */
     ofdm_frame_equalizer_vcvc_impl::ofdm_frame_equalizer_vcvc_impl(
 	ofdm_equalizer_base::sptr equalizer,
 	int cp_len,
@@ -82,10 +88,16 @@ namespace gr {
       set_tag_propagation_policy(TPP_DONT);
     }
 
+    /**
+     * Virtual destructor
+     */
     ofdm_frame_equalizer_vcvc_impl::~ofdm_frame_equalizer_vcvc_impl()
     {
     }
 
+    /**
+     * public function parse_length_tags
+     */
     void
     ofdm_frame_equalizer_vcvc_impl::parse_length_tags(
         const std::vector<std::vector<tag_t> > &tags,
@@ -103,12 +115,21 @@ namespace gr {
     }
 
 
+    /**
+     * The work function for this equalizer "block"
+     * Params:param 
+     *    - noutput_items: total number of items to produce in each output buffer
+     *    - ninput_items: 
+     */
     int
     ofdm_frame_equalizer_vcvc_impl::work(int noutput_items,
 	  gr_vector_int &ninput_items, gr_vector_const_void_star &input_items, gr_vector_void_star &output_items)
     {
+      // Get first input port stream
       const gr_complex *in = (const gr_complex *) input_items[0];
+      // Get first output port stream
       gr_complex *out = (gr_complex *) output_items[0];
+
       int carrier_offset = 0;
       int frame_len = 0;
       if (d_fixed_frame_len) {
@@ -179,10 +200,12 @@ namespace gr {
 	    pmt::init_c32vector(d_fft_len, d_channel_state));
       }
 
+      // Tell the scheduler how many input items we consumed on each input stream
       if (d_fixed_frame_len && d_length_tag_key_str.empty()) {
 	consume_each(frame_len);
       }
 
+      // Tell the scheduler how many output items we produced
       return frame_len;
     }
 
