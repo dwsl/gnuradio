@@ -40,7 +40,7 @@ namespace gr {
     }
 
 
-    // *** Sub-Base class for 1D equalizers using pilot tones *************
+    // *** Sub-Base class constructor for 1D equalizers using pilot tones *************
     ofdm_equalizer_1d_pilots::ofdm_equalizer_1d_pilots(
 	int fft_len,
 	const std::vector<std::vector<int> > &occupied_carriers,
@@ -96,12 +96,17 @@ namespace gr {
       }
     }
 
-
+    /**
+     * Destructor 
+     */
     ofdm_equalizer_1d_pilots::~ofdm_equalizer_1d_pilots()
     {
     }
 
 
+    /**
+     * Virtual method override: reset the channel state info knowledge
+     */
     void
     ofdm_equalizer_1d_pilots::reset()
     {
@@ -110,6 +115,9 @@ namespace gr {
     }
 
 
+    /**
+     * Virtual method override: returns the current channel state
+     */
     void ofdm_equalizer_1d_pilots::get_channel_state(std::vector<gr_complex> &taps)
     {
       taps = d_channel_state;

@@ -63,7 +63,7 @@ namespace gr {
 
     /* \brief Base class for implementation details of 1-dimensional OFDM FDEs which use pilot tones.
      * \ingroup digital
-     *
+     * This is sub-base class for all 1-D OFDM FDEs
      */
     class DIGITAL_API ofdm_equalizer_1d_pilots : public ofdm_equalizer_base
     {

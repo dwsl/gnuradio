@@ -59,6 +59,8 @@ namespace gr {
      * This means soft information of the modulation symbols is lost after the
      * equalization, which is suboptimal for channel codes that use soft decision.
      *
+     * Note2 (DN): this omission of soft info is _suboptimal_ 
+     *
      */
     class DIGITAL_API ofdm_equalizer_simpledfe : public ofdm_equalizer_1d_pilots
     {
