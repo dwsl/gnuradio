@@ -145,7 +145,7 @@ namespace gr {
       // Get all propagated tags on the first item into this block
       std::vector<tag_t> tags;
 
-      // get_tags_in_windows(): retrieve tags using relative indices w.r.t the
+      // (DN) get_tags_in_windows(): retrieve tags using relative indices w.r.t the
       // start of work() function
       get_tags_in_window(
           tags,     // Tags will be saved here
@@ -154,7 +154,7 @@ namespace gr {
           1         // End of relative range
           );
 
-      // Scan through the tags and update appropriate RX parameters
+      // (DN) Scan through the tags and update appropriate RX parameters
       for (unsigned i = 0; i < tags.size(); i++) {
         // Get the channel state information (estimated previously)
         if (pmt::symbol_to_string(tags[i].key) == "ofdm_sync_chan_taps") {
@@ -166,7 +166,7 @@ namespace gr {
         }
       }
 
-      // Copy the frame and the channel state vector such that the symbols are shifted to the correct position
+      // (DN) Copy the frame and the channel state vector such that the symbols are shifted to the correct position
       if (carrier_offset < 0) {
 	memset((void *) out, 0x00, sizeof(gr_complex) * (-carrier_offset));
 	memcpy(
@@ -193,7 +193,7 @@ namespace gr {
       }
 
       // Do the equalizing and output "hard" rx'ed samples
-      // No soft information is recorded. Start HERE to change.
+      // No soft information is recorded. Start HERE (DN) to change.
       d_eq->reset();
       d_eq->equalize(out, frame_len, d_channel_state);
       d_eq->get_channel_state(d_channel_state);

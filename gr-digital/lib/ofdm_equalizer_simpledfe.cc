@@ -73,7 +73,15 @@ namespace gr {
     {
     }
 
-
+    /**
+     * (DN) Main equalizer method for simple DFE 
+     * The equalizer keeps track of the channel estimate on every subcarrier i (H_i) using an averaging IIR filter 
+     *  Params:
+     *    - frame: packet frame samples
+     *    - n_sym: number of symbols to equalize
+     *    - initial_taps
+     *    - tags
+     */
     void
     ofdm_equalizer_simpledfe::equalize(gr_complex *frame,
 	      int n_sym,
@@ -81,27 +89,41 @@ namespace gr {
 	      const std::vector<tag_t> &tags)
     {
       if (!initial_taps.empty()) {
+        // (DN) Initialize the channel state vector
 	d_channel_state = initial_taps;
       }
       gr_complex sym_eq, sym_est;
 
-      for (int i = 0; i < n_sym; i++) {
-	for (int k = 0; k < d_fft_len; k++) {
-	  if (!d_occupied_carriers[k]) {
+      for (int i = 0; i < n_sym; i++) { // loop through the OFDM symbols in the frame
+	for (int k = 0; k < d_fft_len; k++) { // loop through the subcarrier index
+
+	  if (!d_occupied_carriers[k]) { // if k is NOT a data subcarrier
 	    continue;
 	  }
-	  if (!d_pilot_carriers.empty() && d_pilot_carriers[d_pilot_carr_set][k]) {
+          
+          // (DN) IF there are pilot subcarrriers, and this k-th subcarrier is a pilot
+	  if (!d_pilot_carriers.empty() && d_pilot_carriers[d_pilot_carr_set][k]) {  
+            // update (directly) the channel estimate on the k-th subcarrier, H_k, using an averaging IIR
 	    d_channel_state[k] = d_alpha * d_channel_state[k]
 			       + (1-d_alpha) * frame[i*d_fft_len + k] / d_pilot_symbols[d_pilot_carr_set][k];
+            // Equalize the subcarrier data symbol
 	    frame[i*d_fft_len+k] = d_pilot_symbols[d_pilot_carr_set][k];
-	  } else {
+	  } 
+          // (DN) ELSE, k-th subcarrier carries data symbol
+          else { 
+            // equalize the subcarrier data symbol, using the _previous_ channel estimate
 	    sym_eq = frame[i*d_fft_len+k] / d_channel_state[k];
+            // map the equalized symbol to a constellation point
 	    d_constellation->map_to_points(d_constellation->decision_maker(&sym_eq), &sym_est);
+            // calculate the new channel estimate based on this mapping
 	    d_channel_state[k] = d_alpha * d_channel_state[k]
                                + (1-d_alpha) * frame[i*d_fft_len + k] / sym_est;
+            // update the channel estimate
 	    frame[i*d_fft_len+k] = sym_est;
 	  }
 	}
+
+        // Advancing the pilot carrier set index 
 	if (!d_pilot_carriers.empty()) {
 	  d_pilot_carr_set = (d_pilot_carr_set + 1) % d_pilot_carriers.size();
 	}
