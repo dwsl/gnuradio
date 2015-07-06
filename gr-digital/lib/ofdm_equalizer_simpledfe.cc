@@ -101,12 +101,12 @@ namespace gr {
 	    continue;
 	  }
           
-          // (DN) IF there are pilot subcarrriers, and this k-th subcarrier is a pilot
+          // (DN) IF there are pilot subcarriers, and this k-th subcarrier is a pilot
 	  if (!d_pilot_carriers.empty() && d_pilot_carriers[d_pilot_carr_set][k]) {  
             // update (directly) the channel estimate on the k-th subcarrier, H_k, using an averaging IIR
 	    d_channel_state[k] = d_alpha * d_channel_state[k]
 			       + (1-d_alpha) * frame[i*d_fft_len + k] / d_pilot_symbols[d_pilot_carr_set][k];
-            // Equalize the subcarrier data symbol
+            // Equalize the subcarrier data symbol to the pilot known symbol for subsequent stages
 	    frame[i*d_fft_len+k] = d_pilot_symbols[d_pilot_carr_set][k];
 	  } 
           // (DN) ELSE, k-th subcarrier carries data symbol
@@ -115,10 +115,10 @@ namespace gr {
 	    sym_eq = frame[i*d_fft_len+k] / d_channel_state[k];
             // map the equalized symbol to a constellation point
 	    d_constellation->map_to_points(d_constellation->decision_maker(&sym_eq), &sym_est);
-            // calculate the new channel estimate based on this mapping
+            // calculate the new channel estimate based on this mapping (new `sym_eq`)
 	    d_channel_state[k] = d_alpha * d_channel_state[k]
                                + (1-d_alpha) * frame[i*d_fft_len + k] / sym_est;
-            // update the channel estimate
+            // (DN) hard decision mapping
 	    frame[i*d_fft_len+k] = sym_est;
 	  }
 	}

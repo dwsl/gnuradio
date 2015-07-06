@@ -43,19 +43,26 @@ class qa_ofdm_frame_equalizer_vcvc (gr_unittest.TestCase):
                      make sure they're propagated
         """
         fft_len = 8
+        # (DN) Create the equalizer object 
         equalizer = digital.ofdm_equalizer_static(fft_len)
         n_syms = 3
+        # Generate TX data vector
         tx_data = (1,) * fft_len * n_syms
+        # Create channel state tag
         chan_tag = gr.tag_t()
-        chan_tag.offset = 0
-        chan_tag.key = pmt.string_to_symbol("ofdm_sync_chan_taps")
-        chan_tag.value = pmt.init_c32vector(fft_len, (1,) * fft_len)
+        chan_tag.offset = 0         # tag offset
+        chan_tag.key = pmt.string_to_symbol("ofdm_sync_chan_taps")      # tag key
+        chan_tag.value = pmt.init_c32vector(fft_len, (1,) * fft_len)    # tag value
+        # random tag
         random_tag = gr.tag_t()
         random_tag.offset = 1
         random_tag.key = pmt.string_to_symbol("foo")
         random_tag.value = pmt.from_long(42)
+        # Create data vector source
         src = blocks.vector_source_c(tx_data, False, fft_len, (chan_tag, random_tag))
-        eq = digital.ofdm_frame_equalizer_vcvc(equalizer.base(), 0, self.tsb_key)
+        # Create `ofdm_frame_equalizer` object
+        eq = digital.ofdm_frame_equalizer_vcvc(equalizer.base(), 0, self.tsb_key) 
+        # vector sink
         sink = blocks.tsb_vector_sink_c(fft_len, tsb_key=self.tsb_key)
         self.tb.connect(
             src,
